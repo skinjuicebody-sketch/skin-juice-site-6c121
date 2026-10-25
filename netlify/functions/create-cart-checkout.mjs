@@ -52,7 +52,7 @@ export default async function handler(req){
    params.append(`metadata[item_${i+1}]`,note);
   });
   const result=await fetch("https://api.stripe.com/v1/checkout/sessions",{method:"POST",headers:{"Authorization":"Bearer "+key,"Content-Type":"application/x-www-form-urlencoded"},body:params.toString()});
-  const data=await result.json();if(!result.ok||!data.url)throw Error("Stripe could not start checkout.");
+  const data=await result.json();if(!result.ok||!data.url){console.error("Stripe Checkout session failed",result.status,data?.error?.type||"",data?.error?.code||"",data?.error?.message||"");throw Error("Stripe checkout error: "+(data?.error?.message||"Request rejected")+" (HTTP "+result.status+").")}
   if(req.headers.get("content-type")?.includes("application/x-www-form-urlencoded"))return Response.redirect(data.url,303);
   return new Response(JSON.stringify({url:data.url}),{status:200,headers});
  }catch(e){return new Response(JSON.stringify({error:e.message||"Checkout failed"}),{status:400,headers});}
