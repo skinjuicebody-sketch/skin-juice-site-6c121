@@ -13,7 +13,8 @@ const prices={
 "SS-FIRM-6":"price_1UEK54QjUAwLUc01ImpK8t09",
 "SS-FIRM-10":"price_1UEK5AQjUAwLUc01x88cg4AN"
 };
-const allowedOrigins=["https://skinsessed.com","https://www.skinsessed.com","https://frolicking-toffee-82ff8f.netlify.app"];\nconst corsOrigin="https://skinsessed.com";
+const allowedOrigins=["https://skinsessed.com","https://www.skinsessed.com","https://frolicking-toffee-82ff8f.netlify.app"];
+const corsOrigin="https://skinsessed.com";
 const headers={"Content-Type":"application/json","Access-Control-Allow-Origin":corsOrigin,"Vary":"Origin","Cache-Control":"no-store"};
 export default async function handler(req){
  if(req.method==="OPTIONS") return new Response(null,{status:204,headers:{...headers,"Access-Control-Allow-Methods":"POST, OPTIONS","Access-Control-Allow-Headers":"Content-Type"}});
