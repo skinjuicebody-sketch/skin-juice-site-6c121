@@ -21,7 +21,7 @@ export default async function handler(req){
  if(req.method==="GET")return new Response(JSON.stringify({ready:Boolean(Netlify.env.get("STRIPE_SECRET_KEY"))}),{status:200,headers});
  if(req.method!=="POST")return new Response(JSON.stringify({error:"Method not allowed"}),{status:405,headers});
  if(req.headers.get("origin")&&!allowedOrigins.includes(req.headers.get("origin")))return new Response(JSON.stringify({error:"Unrecognized origin"}),{status:403,headers});
- const key=Netlify.env.get("STRIPE_SECRET_KEY");
+ const key=String(Netlify.env.get("STRIPE_SECRET_KEY")||"").replace(/[\u200B-\u200D\u2060\uFEFF]/g,"").trim().replace(/^["\x27]|["\x27]$/g,"").trim();
  if(!key)return new Response(JSON.stringify({error:"Secure checkout is not configured yet. Please contact SkinSessed."}),{status:503,headers});
  try {
   const raw=await req.text();const body=req.headers.get("content-type")?.includes("application/x-www-form-urlencoded")?JSON.parse(new URLSearchParams(raw).get("cart")||"{}"):JSON.parse(raw);const items=body.items;
