@@ -1,3 +1,4 @@
+// Redeploy checkout function to load the production Stripe credential updated on 2026-10-26.
 const featuredPrices={"SS-FEATURE-OATMEAL-3":{"name":"3 Full-Size Oatmeal Milk & Honey Goat Milk Soap Bars","cents":1475},"SS-FEATURE-CUCUMBER-3":{"name":"3 Full-Size Cucumber Melon Goat Milk Soap Bars","cents":1475},"SS-FEATURE-LINEN-3":{"name":"3 Full-Size Fresh Clean Linen Goat Milk Soap Bars","cents":1475},"SS-FEATURE-BIRTHDAY-3":{"name":"3 Birthday Cake Jumbo Goat Milk Soap Bars","cents":1775}};
 const prices={
 "SS-MAHOGANY-TRIO":"price_1UUWj9QjUAwLUc01XF0WXuSU",
