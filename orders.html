@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<title>SkinSessed | Orders</title>
+<style>
+:root{font-family:system-ui,Arial,sans-serif;color:#32232a;background:#faf7f7}
+*{box-sizing:border-box}
+body{margin:0} header{background:#732c50;color:#fff;padding:20px 16px}
+main{max-width:920px;margin:22px auto;padding:0 15px}
+h1{margin:0;font:700 30px Georgia,serif} header p{margin:6px 0 0}
+section,.order{background:#fff;border:1px solid #e6dfe3;border-radius:12px;padding:18px;margin:16px 0;box-shadow:0 2px 10px #00000009}
+label{display:block;margin-bottom:8px;font-weight:600}
+input{padding:12px;border:1px solid #b9a9b1;border-radius:7px;font:inherit;width:min(100%,420px)}
+button,.action{border:0;border-radius:8px;padding:11px 15px;font:600 14px system-ui,Arial;background:#732c50;color:#fff;cursor:pointer;display:inline-block;text-decoration:none;margin:5px 7px 5px 0}
+.action.alt,button.alt{background:#f1e8ed;color:#622a4a}
+button:disabled{opacity:.5;cursor:wait}
+#notice{font-weight:600;color:#a12946}
+.top{display:flex;align-items:start;gap:12px;justify-content:space-between;flex-wrap:wrap}
+h2{margin:0 0 8px;font-size:21px}p{line-height:1.45}
+.small{font-size:13px;color:#776772}.order .money{font-size:22px;font-weight:700}
+ul{padding-left:19px}li{padding:6px 0}
+pre{white-space:pre-wrap;font:inherit;background:#faf7f7;padding:10px;border-radius:7px}
+.flag{color:#a82943;font-weight:700}
+.hidden{display:none!important}
+</style></head>
+<body>
+<header><h1>SkinSessed Orders</h1><p>Private order list — paid Stripe checkouts</p></header>
+<main>
+<section id="login">
+<h2>Open your orders</h2>
+<p>Enter your administrator access code. This code is not the Stripe secret key.</p>
+<form id="loginform"><label for="access">Access code</label><input id="access" type="password" required autocomplete="current-password">
+<div><button type="submit">View Orders</button></div></form></section>
+<section id="toolbar" class="hidden">
+<button id="refresh">Refresh orders</button><button id="signout" class="alt">Lock orders</button>
+<p class="small">Shows completed paid checkouts. The Email Customer button opens your email app with an editable thank-you note; it does not send automatically.</p>
+</section>
+<p id="notice" role="status"></p>
+<div id="orders"></div><button id="more" class="hidden">Load older orders</button>
+</main>
+<script>
+(()=>{
+const endpoint="/.netlify/functions/admin-orders";
+const login=document.querySelector("#login"),toolbar=document.querySelector("#toolbar");
+const ordersEl=document.querySelector("#orders"),notice=document.querySelector("#notice");
+const more=document.querySelector("#more");
+let token=sessionStorage.getItem("skinsessedOrderAccess")||"";
+let nextCursor=null,seen=[];
+const dollars=n=>"$"+(n/100).toFixed(2);
+function el(tag,content,cls){
+  const n=document.createElement(tag);if(content!==undefined)n.textContent=String(content);
+  if(cls)n.className=cls;return n;
+}
+function button(text,fn,cls){const b=el("button",text,cls);b.onclick=fn;return b}
+function when(ts){return new Date(ts*1000).toLocaleString("en-US",{timeZone:"America/New_York",dateStyle:"medium",timeStyle:"short"})+" ET"}
+function details(o){
+  return "SkinSessed order "+o.id+"\nCustomer: "+o.name+"\nEmail: "+o.email+
+   "\nDate: "+when(o.created)+"\n\n"+o.items.map(i=>i.quantity+" × "+i.name+" — "+dollars(i.total)+(i.note?"\n"+i.note:"")).join("\n\n")+
+   (o.selections.length?"\n\nOptions:\n"+o.selections.map(v=>v.label+": "+v.value).join("\n"):"")+
+   "\n\nTotal: "+dollars(o.total)+"\n\nShip to:\n"+o.name+"\n"+o.shippingAddress;
+}
+function draw(o){
+ const wrap=el("article",undefined,"order");
+ const top=el("div",undefined,"top");
+ const left=el("div");
+ left.append(el("h2",o.name),el("p",when(o.created)+" · "+o.email,"small"));
+ top.append(left,el("div",dollars(o.total),"money"));wrap.append(top);
+ const match=seen.find(p=>p!==o && p.email && p.email===o.email &&
+       p.total===o.total && Math.abs(p.created-o.created)<300);
+ if(match) wrap.append(el("p","⚠ Possible duplicate payment — review before shipping","flag"));
+ const list=el("ul");
+ o.items.forEach(i=>{
+  const li=el("li");
+  li.append(el("strong",i.quantity+" × "+i.name+" — "+dollars(i.total)));
+  if(i.note)li.append(el("div",i.note,"small"));
+  list.append(li);
+ });
+ wrap.append(list);
+ if(o.selections.length) wrap.append(el("p",o.selections.map(v=>v.label+": "+v.value).join(" | "),"small"));
+ wrap.append(el("h3","Shipping address"),el("pre",o.name+"\n"+(o.shippingAddress||"Not supplied")));
+ const actions=el("div");
+ if(o.email){
+   const subject="Thank you for your SkinSessed order!";
+   const first=(o.name||"").split(" ")[0]||"there";
+   const body="Hi "+first+",\n\nThank you so much for your SkinSessed order! I'm getting everything ready for you and will tuck in a few extra goodies. I really appreciate your support and hope you love everything!\n\nWarmly,\nSkinSessed";
+   const link=el("a","Email Customer","action");
+   link.href="mailto:"+encodeURIComponent(o.email)+"?subject="+encodeURIComponent(subject)+"&body="+encodeURIComponent(body);
+   actions.append(link);
+ }
+ actions.append(button("Copy order details",()=>navigator.clipboard.writeText(details(o)),"alt"));
+ wrap.append(actions,el("p","Order reference: "+o.id,"small"));return wrap;
+}
+async function load(older=false){
+ if(!token){login.classList.remove("hidden");toolbar.classList.add("hidden");return;}
+ notice.textContent="Loading paid orders…";more.classList.add("hidden");
+ try{
+  const q=older && nextCursor?"?cursor="+encodeURIComponent(nextCursor):"";
+  const r=await fetch(endpoint+q,{headers:{"x-skinsessed-order-access":token},cache:"no-store"});
+  const data=await r.json();
+  if(!r.ok) throw Error(data.error||"Unable to open orders");
+  if(!older){seen=[];ordersEl.replaceChildren()}
+  seen.push(...(data.orders||[]));
+  (data.orders||[]).forEach(o=>ordersEl.append(draw(o)));
+  nextCursor=data.nextCursor;
+  more.classList.toggle("hidden",!data.hasMore);
+  login.classList.add("hidden");toolbar.classList.remove("hidden");
+  notice.textContent=seen.length?seen.length+" paid checkout(s) loaded.":"No paid checkouts found.";
+ }catch(e){
+  notice.textContent=e.message;
+  if(/Incorrect access code/.test(e.message)){token="";sessionStorage.removeItem("skinsessedOrderAccess");login.classList.remove("hidden");toolbar.classList.add("hidden")}
+ }
+}
+document.querySelector("#loginform").onsubmit=e=>{
+ e.preventDefault();token=document.querySelector("#access").value.trim();
+ sessionStorage.setItem("skinsessedOrderAccess",token);load();
+};
+document.querySelector("#refresh").onclick=()=>load();
+document.querySelector("#signout").onclick=()=>{token="";sessionStorage.removeItem("skinsessedOrderAccess");ordersEl.replaceChildren();login.classList.remove("hidden");toolbar.classList.add("hidden");notice.textContent="Orders are locked."};
+more.onclick=()=>load(true);
+if(token)load();
+})();
+</script></body></html>
