@@ -27,7 +27,9 @@ export default async function handler(req){
  try {
   const raw=await req.text();const body=req.headers.get("content-type")?.includes("application/x-www-form-urlencoded")?JSON.parse(new URLSearchParams(raw).get("cart")||"{}"):JSON.parse(raw);const items=body.items;
   if(!Array.isArray(items)||items.length<1||items.length>30)throw Error("Choose 1 to 30 cart items.");
-  const params=new URLSearchParams();params.set("mode","payment");params.set("success_url","https://skinsessed.com/shop.html?checkout=success");params.set("cancel_url","https://skinsessed.com/shop.html?checkout=cancel");
+  // A stable browser-generated checkout attempt lets Stripe safely replay duplicate requests.
+  const checkoutAttemptId=typeof body.checkoutAttemptId==="string" && /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(body.checkoutAttemptId)?body.checkoutAttemptId:null;
+  const params=new URLSearchParams();if(checkoutAttemptId)params.set("metadata[checkout_attempt_id]",checkoutAttemptId);params.set("mode","payment");params.set("success_url","https://skinsessed.com/shop.html?checkout=success");params.set("cancel_url","https://skinsessed.com/shop.html?checkout=cancel");
   params.append("shipping_address_collection[allowed_countries][0]","US");
   params.append("shipping_options[0][shipping_rate_data][type]","fixed_amount");
   params.append("shipping_options[0][shipping_rate_data][fixed_amount][amount]","0");
@@ -52,7 +54,7 @@ export default async function handler(req){
    if(note.length>490)throw Error("Please shorten scent selections.");
    params.append(`metadata[item_${i+1}]`,note);
   });
-  const result=await fetch("https://api.stripe.com/v1/checkout/sessions",{method:"POST",headers:{"Authorization":"Bearer "+key,"Content-Type":"application/x-www-form-urlencoded"},body:params.toString()});
+  const result=await fetch("https://api.stripe.com/v1/checkout/sessions",{method:"POST",headers:{"Authorization":"Bearer "+key,"Content-Type":"application/x-www-form-urlencoded",...(checkoutAttemptId?{"Idempotency-Key":"skinsessed-cart-"+checkoutAttemptId}:{})},body:params.toString()});
   const data=await result.json();if(!result.ok||!data.url){console.error("Stripe Checkout session failed",result.status,data?.error?.type||"",data?.error?.code||"",data?.error?.message||"");throw Error("Stripe checkout error: "+(data?.error?.message||"Request rejected")+" (HTTP "+result.status+").")}
   if(req.headers.get("content-type")?.includes("application/x-www-form-urlencoded"))return Response.redirect(data.url,303);
   return new Response(JSON.stringify({url:data.url}),{status:200,headers});
