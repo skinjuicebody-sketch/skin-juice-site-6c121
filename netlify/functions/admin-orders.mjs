@@ -1,4 +1,4 @@
-import { timingSafeEqual } from "node:crypto";
+import { timingSafeEqual, createHash } from "node:crypto";
 
 const headers = {
   "content-type": "application/json; charset=utf-8",
@@ -27,9 +27,9 @@ function addressText(address) {
 }
 export default async function handler(req) {
   if(req.method!=="GET") return reply({error:"Method not allowed"},405);
-  const password=Netlify.env.get("ORDER_ADMIN_TOKEN")||"";
-  if(!password) return reply({error:"Orders dashboard requires an administrator access code to be configured in Netlify."},503);
-  if(!equal(req.headers.get("x-skinsessed-order-access")||"",password))
+  const passwordHash="3775b27eec93bfde790c2c14f171e16a1643490c1a40caccd47744e594d14197";
+  const suppliedHash=createHash("sha256").update(req.headers.get("x-skinsessed-order-access")||"").digest("hex");
+  if(!equal(suppliedHash,passwordHash))
     return reply({error:"Incorrect access code"},401);
   const key=Netlify.env.get("STRIPE_SECRET_KEY");
   if(!key) return reply({error:"Stripe connection unavailable"},503);
