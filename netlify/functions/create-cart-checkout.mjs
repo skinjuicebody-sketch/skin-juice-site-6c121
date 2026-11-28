@@ -1,6 +1,6 @@
 // Redeploy checkout function to load the production Stripe credential updated on 2026-10-26.
 const featuredPrices={"SS-CHERRY-BRULEE-3":{"name":"Cherry Crème Brûlée Set of Three Full-Size Goat Milk Soap Bars","cents":1575},"SS-MAHOGANY-TRIO":{"name":"Mahogany Teakwood Body Care Trio","cents":1895},"SS-BODYWASH-16":{"name":"SkinSessed 16 oz Deep Hydration Body Wash","cents":1595},"SS-BLUEBERRY-4":{"name":"Blueberry Pound Cake Set of Four Full-Size Goat Milk Soap Bars","cents":1995},"SS-RASPBERRY-4":{"name":"Raspberry Mimosa Set of Four Full-Size Goat Milk Soap Bars","cents":1995}};
-const lipSealFlavors=["Banana Pudding","Birthday Cake","Black Cherry Merlot","Blueberry Pound Cake","Caramel Nut Muffin","Cherry Vanilla","Chocolate Cream Truffle","Frosted Mint","Kiwi Watermelon","Lemon Meringue Pie","Malibu Rum Cupcakes","Maple Pecan","Oatmeal Milk and Honey","Orange Chiffon Cake","Peaches and Cream","Raspberry Mimosa"];
+const lipSealFlavors=["Banana Pudding","Birthday Cake","Black Cherry Merlot","Blueberry Pound Cake","Caramel Nut Muffin","Cherry Vanilla","Chocolate Cream Truffle","Cranberry Cheesecake","Frosted Mint","Kiwi Watermelon","Lemon Meringue Pie","Malibu Rum Cupcakes","Maple Pecan","Oatmeal Milk and Honey","Orange Chiffon Cake","Peaches and Cream","Raspberry Mimosa"];
 const prices={
 "SS-SCRUB-7":"price_1UEK4YQjUAwLUc01EP59yvqx",
 "SS-SCRUB-11":"price_1UEK4fQjUAwLUc01j0kuNrdd",

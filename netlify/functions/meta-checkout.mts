@@ -54,7 +54,7 @@ const SCENT_OPTIONS = [
   'Raspberry Mimosa',
 ];
 
-const LIP_SEAL_FLAVORS = ["Banana Pudding","Birthday Cake","Black Cherry Merlot","Blueberry Pound Cake","Caramel Nut Muffin","Cherry Vanilla","Chocolate Cream Truffle","Frosted Mint","Kiwi Watermelon","Lemon Meringue Pie","Malibu Rum Cupcakes","Maple Pecan","Oatmeal Milk and Honey","Orange Chiffon Cake","Peaches and Cream","Raspberry Mimosa"];
+const LIP_SEAL_FLAVORS = ["Banana Pudding","Birthday Cake","Black Cherry Merlot","Blueberry Pound Cake","Caramel Nut Muffin","Cherry Vanilla","Chocolate Cream Truffle","Cranberry Cheesecake","Frosted Mint","Kiwi Watermelon","Lemon Meringue Pie","Malibu Rum Cupcakes","Maple Pecan","Oatmeal Milk and Honey","Orange Chiffon Cake","Peaches and Cream","Raspberry Mimosa"];
 function optionsForSlot(id: string, slot: number): string[] {
   return id === "SS-LIPSEAL-6" || (id === "SS-GIFT-COMPLETE" && slot === 5) ? LIP_SEAL_FLAVORS : SCENT_OPTIONS;
 }
